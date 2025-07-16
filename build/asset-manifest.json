@@ -1,0 +1,16 @@
+{
+  "files": {
+    "main.css": "/static/css/main.f350d79b.css",
+    "main.js": "/static/js/main.d7059f00.js",
+    "static/js/453.0bcfabd0.chunk.js": "/static/js/453.0bcfabd0.chunk.js",
+    "static/media/Google-Icon-2025.png": "/static/media/Google-Icon-2025.8cedc0fcf7352baf135a.png",
+    "index.html": "/index.html",
+    "main.f350d79b.css.map": "/static/css/main.f350d79b.css.map",
+    "main.d7059f00.js.map": "/static/js/main.d7059f00.js.map",
+    "453.0bcfabd0.chunk.js.map": "/static/js/453.0bcfabd0.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.f350d79b.css",
+    "static/js/main.d7059f00.js"
+  ]
+}
