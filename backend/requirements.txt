@@ -1,0 +1,7 @@
+flask
+flask-cors
+requests
+requests-oauthlib
+python-dotenv
+mysql-connector-python
+gunicorn
