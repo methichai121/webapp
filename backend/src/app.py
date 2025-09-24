@@ -301,6 +301,15 @@ def get_activity(activity_id):
     finally:
         cursor.close()
         conn.close()
+# -------------------------
+# Root route
+# -------------------------
+@app.route("/")
+def index():
+    return jsonify({
+        "message": "Student Volunteer API is running 🎉",
+        "status": "ok"
+    })
 
 # -------------------------
 # Run server
