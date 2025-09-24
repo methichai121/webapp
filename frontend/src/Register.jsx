@@ -1,62 +1,95 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // ใช้ useNavigate
-import { FaHome } from 'react-icons/fa'; // ใช้ FaHome
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { FaHome } from 'react-icons/fa';
 
 const Register = () => {
-  const navigate = useNavigate(); // ใช้ navigate
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // ดึง email จาก location.state (ถ้ามี)
+  const initialEmail = location.state?.email || '';
+
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    username: '',
-    password: '',
-    confirmPassword: '',
-    email: '',
+    email: initialEmail,
     faculty: '',
     major: '',
-    year: '' // เพิ่มชั้นปี
+    year: ''
   });
 
   const [error, setError] = useState('');
 
+  // ถ้า location.state.email เปลี่ยน ให้ update formData.email ด้วย (optional)
+  useEffect(() => {
+    if (initialEmail) {
+      setFormData(prev => ({ ...prev, email: initialEmail }));
+    }
+  }, [initialEmail]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
-const handleSubmit = (e) => {
-  e.preventDefault(); // ห้ามหน้าเว็บรีเฟรชเมื่อ submit
+// ฟังก์ชัน handleSubmit ทำงานเมื่อผู้ใช้กดปุ่ม "สมัครสมาชิก" หรือส่งฟอร์ม
+const handleSubmit = async (e) => {
+  e.preventDefault(); // ป้องกันไม่ให้ฟอร์มรีเฟรชหน้าเว็บ
 
-  const email = formData.email.trim();
+  const email = formData.email.trim(); // เอา email จาก state แล้วตัดช่องว่างออก
 
+  // ✅ ตรวจว่ามีการกรอก email หรือยัง
   if (!email) {
     setError('กรุณากรอกอีเมล');
-    return;
+    return; // ถ้ายังไม่กรอกให้หยุดการทำงาน
   }
 
-  const firstChar = email.charAt(0);
+  try {
+    // ✅ ส่งข้อมูลฟอร์มไปยัง Flask Backend
+    const response = await fetch('http://localhost:5000/api/register', {
+      method: 'POST', // ใช้ POST เพราะเราจะส่งข้อมูลใหม่ไปเพิ่มในฐานข้อมูล
+      headers: { 'Content-Type': 'application/json' }, // บอกว่าข้อมูลที่ส่งเป็น JSON
+      body: JSON.stringify(formData) // แปลง object formData เป็น JSON string
+    });
 
-  if (/[a-zA-Z]/.test(firstChar)) {
-    navigate('/hometeacher'); // ถ้าขึ้นต้นด้วย a-z
-  } else if (/[0-9]/.test(firstChar)) {
-    navigate('/homestudent'); // ถ้าขึ้นต้นด้วยเลข
-  } else {
-    setError('อีเมลไม่ถูกต้อง');
+    // ✅ รับคำตอบจากเซิร์ฟเวอร์แล้วแปลงเป็น JSON
+    const data = await response.json();
+    console.log('Server response:', data);
+
+    if (response.ok) {
+      // ถ้าบันทึกสำเร็จ → เช็กอักษรแรกของ email เพื่อกำหนดหน้า redirect
+      const firstChar = email.charAt(0);
+
+      if (/[a-zA-Z]/.test(firstChar)) {
+        // ถ้าอักษรแรกเป็นตัวอักษร → ไปหน้าอาจารย์
+        navigate('/hometeacher');
+      } else if (/[0-9]/.test(firstChar)) {
+        // ถ้าอักษรแรกเป็นตัวเลข → ไปหน้านักเรียน
+        navigate('/homestudent');
+      } else {
+        setError('อีเมลไม่ถูกต้อง');
+      }
+    } else {
+      // ถ้า API ตอบ error เช่น SQL error หรือข้อมูลซ้ำ
+      setError(data.error || 'ไม่สามารถบันทึกข้อมูลได้');
+    }
+  } catch (error) {
+    // ถ้าการเชื่อมต่อ Flask server ล้มเหลว (เช่น server ปิดอยู่)
+    console.error('Error:', error);
+    setError('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
   }
 };
 
   return (
     <>
       <div style={styles.container}>
-        {/* ปุ่มมุมซ้ายบน */}
         <div style={styles.topLeft}>
           <a href="/" style={styles.linkButton}>
-            <FaHome size={0} />
+            <FaHome size={20} />
           </a>
         </div>
 
-        {/* ฟอร์มสมัครสมาชิก */}
         <form onSubmit={handleSubmit} style={styles.form}>
           <h2>ยืนยันข้อมูล</h2>
 
-          {/* ชื่อจริงและนามสกุลอยู่ในช่องเดียวกัน */}
           <input
             type="text"
             name="firstName"
@@ -76,18 +109,17 @@ const handleSubmit = (e) => {
             style={styles.input}
           />
 
-          {/* Input สำหรับอีเมล */}
           <input
             type="email"
             name="email"
             placeholder="อีเมล"
             value={formData.email}
+            readOnly
             onChange={handleChange}
             required
             style={styles.input}
           />
 
-          {/* Input สำหรับคณะ */}
           <input
             type="text"
             name="faculty"
@@ -98,7 +130,6 @@ const handleSubmit = (e) => {
             style={styles.input}
           />
 
-          {/* Input สำหรับสาขา */}
           <input
             type="text"
             name="major"
@@ -109,7 +140,6 @@ const handleSubmit = (e) => {
             style={styles.input}
           />
 
-          {/* Input สำหรับชั้นปี */}
           <input
             type="text"
             name="year"
@@ -120,10 +150,8 @@ const handleSubmit = (e) => {
             style={styles.input}
           />
 
-          {/* แสดงข้อความ error ถ้ามี */}
           {error && <p style={styles.error}>{error}</p>}
 
-          {/* ปุ่มสมัครสมาชิกที่ไปหน้า Dashboard */}
           <button type="submit" style={styles.button}>
             สร้างบัญชี
           </button>
@@ -133,7 +161,6 @@ const handleSubmit = (e) => {
   );
 };
 
-// การใช้ styles ใน JSX
 const styles = {
   container: {
     display: 'flex',

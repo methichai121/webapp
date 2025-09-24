@@ -1,10 +1,79 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 const Followactivitystudent = () => {
+  const [followedActivities, setFollowedActivities] = useState([]);
+  const [joinedActivities, setJoinedActivities] = useState([]); // เก็บกิจกรรมที่เข้าร่วมแล้ว
+  const [userEmail, setUserEmail] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const email = localStorage.getItem("userEmail");
+    if (!email) {
+      navigate("/"); // ถ้าไม่มีให้กลับหน้า login
+    } else {
+      setUserEmail(email);
+    }
+
+    const followed =
+      JSON.parse(localStorage.getItem("followedActivitiesStudent")) || [];
+    setFollowedActivities(followed);
+
+    const joined =
+      JSON.parse(localStorage.getItem("joinedActivitiesStudent")) || [];
+    setJoinedActivities(joined);
+  }, [navigate]);
+
+  const handleUnfollow = (activity_id) => {
+    const updated = followedActivities.filter(
+      (act) => act.activity_id !== activity_id
+    );
+    setFollowedActivities(updated);
+    localStorage.setItem("followedActivitiesStudent", JSON.stringify(updated));
+    alert("ยกเลิกติดตามกิจกรรมเรียบร้อยแล้ว");
+  };
+
+  const handleJoin = (activity) => {
+    const exists = joinedActivities.find(
+      (a) => a.activity_id === activity.activity_id
+    );
+    if (exists) {
+      alert("คุณเข้าร่วมกิจกรรมนี้แล้ว");
+      return;
+    }
+
+    // คำนวณชั่วโมง (อย่างง่าย: สิ้นสุด - เริ่ม)
+    const startHour = parseInt(activity.start_time.split(":")[0], 10);
+    const endHour = parseInt(activity.end_time.split(":")[0], 10);
+    const hours = endHour - startHour;
+
+    const newActivity = {
+      ...activity,
+      hours: hours > 0 ? hours : 0,
+    };
+
+    const updated = [...joinedActivities, newActivity];
+    setJoinedActivities(updated);
+    localStorage.setItem("joinedActivitiesStudent", JSON.stringify(updated));
+
+    alert("เข้าร่วมกิจกรรมเรียบร้อยแล้ว");
+  };
+
+  const handleCancelJoin = (activity_id) => {
+    const updated = joinedActivities.filter(
+      (act) => act.activity_id !== activity_id
+    );
+    setJoinedActivities(updated);
+    localStorage.setItem("joinedActivitiesStudent", JSON.stringify(updated));
+    alert("ยกเลิกการเข้าร่วมกิจกรรมแล้ว");
+  };
+
+  const isJoined = (id) => {
+    return joinedActivities.some((act) => act.activity_id === id);
+  };
+
   return (
     <>
-      {/* Inline CSS สำหรับ hover */}
       <style>
         {`
           .nav-item {
@@ -21,60 +90,113 @@ const Followactivitystudent = () => {
             background-color: #0077b6;
             color: #fff;
           }
+          button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          }
         `}
       </style>
 
-      {/* Main container */}
       <div style={styles.container}>
-        {/* Top Box (Header) */}
         <div style={styles.topBox}>
-          <h2>กิจกรรมที่ติดตาม</h2>
-          <p>ดูรายการกิจกรรมที่คุณติดตามอยู่</p>
+          <h2>กิจกรรมที่ติดตาม (นักศึกษา)</h2>
+          <p>เข้าสู่ระบบ: {userEmail}</p>
         </div>
 
-        {/* Main content container */}
         <div style={styles.mainContent}>
-          {/* Left Side (Menu) */}
           <div style={styles.leftSide}>
-            <header style={styles.header}>
-              <nav style={styles.nav}>
-                <Link to="/homestudent" className="nav-item">หน้าหลัก</Link>
-                <Link to="/profile" className="nav-item">โปรไฟล์</Link>
-                <Link to="/searchactivitystudent" className="nav-item">ค้นหากิจกรรม</Link>
-                <Link to="/followactivitystudent" className="nav-item">กิจกรรมที่ติดตาม</Link>
-                <Link to="/checkhours" className="nav-item">ดูจิตอาสาสะสม</Link>
-                <Link to="/" className="nav-item">ออกจากระบบ</Link>
-              </nav>
-            </header>
+            <nav style={styles.nav}>
+              <Link to="/homestudent" className="nav-item">
+                หน้าหลัก
+              </Link>
+              <Link to="/profilestudent" className="nav-item">
+                โปรไฟล์
+              </Link>
+              <Link to="/searchactivitystudent" className="nav-item">
+                ค้นหากิจกรรม
+              </Link>
+              <Link to="/followactivitystudent" className="nav-item">
+                กิจกรรมที่ติดตาม
+              </Link>
+              <Link to="/checkhours" className="nav-item">
+                ดูจิตอาสาสะสม
+              </Link>
+              <Link
+                to="/"
+                className="nav-item"
+                onClick={() => localStorage.removeItem("userEmail")}
+              >
+                ออกจากระบบ
+              </Link>
+            </nav>
           </div>
 
-          {/* Right Side (Main content) */}
           <div style={styles.rightSide}>
-            <section style={styles.mainSection}>
-              <h3 style={styles.sectionTitle}>รายการกิจกรรมที่ติดตาม</h3>
+            <div style={styles.mainSection}>
+              {followedActivities.length === 0 ? (
+                <p>คุณยังไม่มีรายการกิจกรรมที่ติดตาม</p>
+              ) : (
+                followedActivities.map((act) => (
+                  <div key={act.activity_id} style={styles.activityItem}>
+                    <h4>{act.nameactivity}</h4>
+                    <p>วันที่: {act.date}</p>
+                    <p>
+                      เวลา: {act.start_time} - {act.end_time}
+                    </p>
+                    <p>สถานที่: {act.location}</p>
 
-              <div style={styles.activityList}>
-                <div style={styles.activityItem}>
-                  <h4>กิจกรรม A</h4>
-                  <p>วันที่: 5 สิงหาคม 2567</p>
-                  <p>สถานที่: อาคารเรียนรวม</p>
-                  <button style={styles.joinButton}>ดูรายละเอียด</button>
-                  <button style={styles.unfollowButton}>ยกเลิกติดตาม</button>
-                </div>
+                    <button
+                      style={{ backgroundColor: "#0077b6" }}
+                      onClick={() =>
+                        navigate(`/activitydetailstudent/${act.activity_id}`)
+                      }
+                    >
+                      ดูรายละเอียด
+                    </button>
 
-                <div style={styles.activityItem}>
-                  <h4>กิจกรรม B</h4>
-                  <p>วันที่: 10 กันยายน 2567</p>
-                  <p>สถานที่: หอประชุมใหญ่</p>
-                  <button style={styles.joinButton}>ดูรายละเอียด</button>
-                  <button style={styles.unfollowButton}>ยกเลิกติดตาม</button>
-                </div>
-              </div>
-            </section>
+                    <button
+                      style={{ backgroundColor: "orange" }}
+                      onClick={() => handleUnfollow(act.activity_id)}
+                    >
+                      ยกเลิกติดตาม
+                    </button>
+
+                    {isJoined(act.activity_id) ? (
+                      <>
+                        <button style={{ backgroundColor: "green" }} disabled>
+                          เข้าร่วมแล้ว
+                        </button>
+                        <button
+                          style={{ backgroundColor: "red" }}
+                          onClick={() => handleCancelJoin(act.activity_id)}
+                        >
+                          ยกเลิกการเข้าร่วม
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          style={{ backgroundColor: "#0077b6" }}
+                          onClick={() => handleJoin(act)}
+                        >
+                          เข้าร่วมกิจกรรม
+                        </button>
+                        <button style={{ backgroundColor: "gray" }} disabled>
+                          ยังไม่ได้เข้าร่วม
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Bottom Box (Footer) */}
         <div style={styles.bottomBox}>
           <p>ติดต่อเรา: example@domain.com</p>
         </div>
@@ -84,91 +206,40 @@ const Followactivitystudent = () => {
 };
 
 const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh',
-  },
+  container: { display: "flex", flexDirection: "column", height: "100vh" },
   topBox: {
-    backgroundColor: '#003366',
-    padding: '20px',
-    textAlign: 'center',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    flex: '0 1 100px',
-    color: '#fff',
+    backgroundColor: "#003366",
+    padding: "20px",
+    textAlign: "center",
+    color: "white",
   },
-  mainContent: {
-    display: 'flex',
-    flex: 1,
-    backgroundColor: '#f9f9f9',
-  },
+  mainContent: { display: "flex", flex: 1, backgroundColor: "#f9f9f9" },
   leftSide: {
-    width: '250px',
-    backgroundColor: '#A1D8E6',
-    padding: '20px',
-    color: '#003366',
+    width: "250px",
+    backgroundColor: "#A1D8E6",
+    padding: "20px",
+    color: "#003366",
   },
-  header: {
-    marginBottom: '30px',
-  },
-  nav: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-  },
-  rightSide: {
-    flex: 1,
-    padding: '20px',
-    overflowY: 'auto',
-  },
+  nav: { display: "flex", flexDirection: "column", gap: "20px" },
+  rightSide: { flex: 1, padding: "20px" },
   mainSection: {
-    backgroundColor: 'white',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-  },
-  sectionTitle: {
-    fontSize: '24px',
-    marginBottom: '20px',
-    color: '#003366',
-  },
-  activityList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '15px',
+    backgroundColor: "white",
+    padding: "20px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
   },
   activityItem: {
-    padding: '15px',
-    border: '1px solid #ccc',
-    borderRadius: '8px',
-    backgroundColor: '#f1f9ff',
-  },
-  joinButton: {
-    marginTop: '10px',
-    marginRight: '10px',
-    padding: '8px 16px',
-    backgroundColor: '#003366',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-  },
-  unfollowButton: {
-    marginTop: '10px',
-    padding: '8px 16px',
-    backgroundColor: '#b60000',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
+    backgroundColor: "white",
+    padding: "15px",
+    marginBottom: "15px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
   },
   bottomBox: {
-    backgroundColor: '#003366',
-    color: 'white',
-    padding: '20px',
-    textAlign: 'center',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    flex: '0 1 100px',
+    backgroundColor: "#003366",
+    color: "white",
+    padding: "20px",
+    textAlign: "center",
   },
 };
 

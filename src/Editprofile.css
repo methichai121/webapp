@@ -1,0 +1,82 @@
+/* Profile.css */
+
+/* จัดตำแหน่งลิงก์ซ้ายบน */
+.top-left {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+}
+
+/* จัดตำแหน่งลิงก์ขวาบน */
+.top-right {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+}
+
+/* สไตล์ของลิงก์ */
+.link-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: royalblue;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+/* กล่องฟอร์มหลัก */
+.form-container {
+  max-width: 500px;
+  margin: 100px auto;
+  padding: 30px;
+  background-color: #f3eca9;
+  border-radius: 16px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* หัวข้อ */
+.form-container h2 {
+  text-align: center;
+  margin-bottom: 24px;
+  color: #333;
+}
+
+/* กล่องแต่ละอินพุต */
+.input-group {
+  margin-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ป้าย label */
+.label {
+  margin-bottom: 6px;
+  font-size: 14px;
+  color: #444;
+}
+
+/* อินพุต */
+.input {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+/* ปุ่มบันทึก */
+.button {
+  width: 100%;
+  padding: 12px;
+  background-color: royalblue;
+  color: white;
+  font-size: 16px;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.button:hover {
+  background-color: #274fa1;
+}

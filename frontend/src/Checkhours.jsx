@@ -1,10 +1,23 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 const Checkhours = () => {
+  const [joinedActivities, setJoinedActivities] = useState([]);
+
+  useEffect(() => {
+    const joined =
+      JSON.parse(localStorage.getItem("joinedActivitiesStudent")) || [];
+    setJoinedActivities(joined);
+  }, []);
+
+  const totalHours = joinedActivities.reduce(
+    (sum, act) => sum + (act.hours || 0),
+    0
+  );
+
   return (
     <>
-      {/* Inline CSS สำหรับ hover */}
+      {/* Inline CSS สำหรับ hover และ table */}
       <style>
         {`
           .nav-item {
@@ -37,67 +50,65 @@ const Checkhours = () => {
         `}
       </style>
 
-      {/* Main container */}
       <div style={styles.container}>
-        
-        {/* Top Box (Header) */}
+        {/* Top Box */}
         <div style={styles.topBox}>
           <h2>ตรวจสอบชั่วโมงจิตอาสาสะสม</h2>
           <p>ดูรายละเอียดชั่วโมงจิตอาสาที่คุณได้เข้าร่วม</p>
         </div>
 
-        {/* Main content container */}
+        {/* Main Content */}
         <div style={styles.mainContent}>
-          {/* Left Side (Menu) */}
+          {/* Left Menu */}
           <div style={styles.leftSide}>
             <header style={styles.header}>
               <nav style={styles.nav}>
-                <Link to="/homestudent" style={styles.navItem}>หน้าหลัก</Link>                
-                <Link to="/profilestudent" style={styles.navItem}>โปรไฟล์</Link>           
-                <Link to="/searchactivitystudent" style={styles.navItem}>ค้นหากิจกรรม</Link> 
-                <Link to="/followactivitystudent" style={styles.navItem}>กิจกรรมที่ติดตาม</Link> 
-                <Link to="/Checkhours" style={styles.navItem}>ดูจิตอาสาสะสม</Link>
-                {/* เพิ่มลิงก์ที่ "ออกจากระบบ" เพื่อไปหน้า Login */}
-                <Link to="/" style={styles.navItem}>ออกจากระบบ</Link> 
+                <Link to="/homestudent" className="nav-item">หน้าหลัก</Link>                
+                <Link to="/profilestudent" className="nav-item">โปรไฟล์</Link>           
+                <Link to="/searchactivitystudent" className="nav-item">ค้นหากิจกรรม</Link> 
+                <Link to="/followactivitystudent" className="nav-item">กิจกรรมที่ติดตาม</Link> 
+                <Link to="/checkhours" className="nav-item">ดูจิตอาสาสะสม</Link>
+                <Link to="/" className="nav-item">ออกจากระบบ</Link> 
               </nav>
             </header>
           </div>
 
-          {/* Right Side (Main content) */}
+          {/* Right Content */}
           <div style={styles.rightSide}>
             <section style={styles.mainSection}>
               <h3 style={styles.sectionTitle}>ชั่วโมงจิตอาสาของฉัน</h3>
 
-              <table>
-                <thead>
-                  <tr>
-                    <th>ชื่อกิจกรรม</th>
-                    <th>วันที่เข้าร่วม</th>
-                    <th>จำนวนชั่วโมง</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td>กิจกรรมปลูกป่า</td>
-                    <td>12 สิงหาคม 2567</td>
-                    <td>5 ชั่วโมง</td>
-                  </tr>
-                  <tr>
-                    <td>กิจกรรมทำความสะอาดชายหาด</td>
-                    <td>20 กันยายน 2567</td>
-                    <td>4 ชั่วโมง</td>
-                  </tr>
-                </tbody>
-              </table>
+              {joinedActivities.length === 0 ? (
+                <p>คุณยังไม่ได้เข้าร่วมกิจกรรม</p>
+              ) : (
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ชื่อกิจกรรม</th>
+                      <th>วันที่เข้าร่วม</th>
+                      <th>จำนวนชั่วโมง</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {joinedActivities.map((act) => (
+                      <tr key={act.activity_id}>
+                        <td>{act.nameactivity}</td>
+                        <td>{act.date}</td>
+                        <td>{act.hours} ชั่วโมง</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
 
               <div style={styles.totalHours}>
-                <strong>รวมทั้งหมด:</strong> 9 ชั่วโมง
+                <strong>รวมทั้งหมด:</strong> {totalHours} ชั่วโมง
               </div>
             </section>
           </div>
         </div>
 
-        {/* Bottom Box (Footer) */}
+        {/* Footer */}
         <div style={styles.bottomBox}>
           <p>ติดต่อเรา: example@domain.com</p>
         </div>
@@ -107,98 +118,36 @@ const Checkhours = () => {
 };
 
 const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh',
-  },
+  container: { display: "flex", flexDirection: "column", height: "100vh" },
   topBox: {
-    backgroundColor: '#003366',
-    padding: '20px',
-    textAlign: 'center',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    flex: '0 1 100px', // กำหนดความสูงของกล่องบนสุด
+    backgroundColor: "#003366",
+    padding: "20px",
+    textAlign: "center",
+    color: "white",
   },
-  mainContent: {
-    display: 'flex',
-    flex: 1, // ใช้พื้นที่ที่เหลือ
-    backgroundColor: '#f9f9f9',
-  },
+  mainContent: { display: "flex", flex: 1, backgroundColor: "#f9f9f9" },
   leftSide: {
-    width: '250px',
-    backgroundColor: '#A1D8E6', // สีพื้นหลังของฝั่งซ้าย
-    padding: '20px',
-    color: '#003366',
+    width: "250px",
+    backgroundColor: "#A1D8E6",
+    padding: "20px",
+    color: "#003366",
   },
-  header: {
-    marginBottom: '30px',
-  },
-  logo: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-  },
-  nav: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px', // เพิ่มช่องว่างระหว่างเมนู
-  },
-  navItem: {
-    color: '#003366',
-    textDecoration: 'none',
-    fontSize: '16px',
-    padding: '10px',
-    lineHeight: '1.8',
-    borderRadius: '4px',
-    transition: 'background-color 0.3s', // เพิ่มการเปลี่ยนสีเมื่อ hover
-  },
-  navItemHover: {
-    backgroundColor: '#0077b6',
-  },
-  rightSide: {
-    flex: 1, // ฝั่งขวาจะยืดตามขนาดที่เหลือ
-    padding: '20px',
-  },
+  header: { marginBottom: "30px" },
+  nav: { display: "flex", flexDirection: "column", gap: "20px" },
+  rightSide: { flex: 1, padding: "20px" },
   mainSection: {
-    backgroundColor: 'white',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+    backgroundColor: "white",
+    padding: "20px",
+    borderRadius: "8px",
+    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
   },
-  sectionTitle: {
-    fontSize: '24px',
-    marginBottom: '20px',
-    color: '#003366',
-  },
-  inputField: {
-    width: '100%',
-    padding: '10px',
-    fontSize: '16px',
-    marginBottom: '20px',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-  },
-  textArea: {
-    width: '100%',
-    padding: '10px',
-    fontSize: '16px',
-    height: '100px',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-    marginBottom: '20px',
-  },
-  imageBox: {
-    height: '150px',
-    backgroundColor: '#d0e6f7',
-    borderRadius: '8px',
-    border: '2px solid #0077b6',
-  },
+  sectionTitle: { fontSize: "24px", marginBottom: "20px", color: "#003366" },
+  totalHours: { marginTop: "20px", fontSize: "18px" },
   bottomBox: {
-    backgroundColor: '#003366',
-    color: 'white',
-    padding: '20px',
-    textAlign: 'center',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    flex: '0 1 100px', // กำหนดความสูงของกล่องล่างสุด
+    backgroundColor: "#003366",
+    color: "white",
+    padding: "20px",
+    textAlign: "center",
   },
 };
 

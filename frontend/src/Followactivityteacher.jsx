@@ -1,10 +1,28 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 
 const Followactivityteacher = () => {
+  const [followedActivities, setFollowedActivities] = useState([]);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // ดึงกิจกรรมที่ติดตามจาก localStorage
+    const followed =
+      JSON.parse(localStorage.getItem('followedActivities')) || [];
+    setFollowedActivities(followed);
+  }, []);
+
+  const handleUnfollow = (activity_id) => {
+    const updated = followedActivities.filter(
+      (act) => act.activity_id !== activity_id
+    );
+    setFollowedActivities(updated);
+    localStorage.setItem('followedActivities', JSON.stringify(updated));
+    alert('ยกเลิกติดตามกิจกรรมเรียบร้อยแล้ว');
+  };
+
   return (
     <>
-      {/* Inline CSS สำหรับ hover */}
       <style>
         {`
           .nav-item {
@@ -21,61 +39,66 @@ const Followactivityteacher = () => {
             background-color: #0077b6;
             color: #fff;
           }
+          button {
+            padding: 10px 20px;
+            margin-right: 10px;
+            background-color: #0077b6;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+          }
         `}
       </style>
 
-      {/* Main container */}
       <div style={styles.container}>
-        
-        {/* Top Box (Header) */}
         <div style={styles.topBox}>
           <h2>กิจกรรมที่ติดตาม (สำหรับอาจารย์)</h2>
           <p>ดูรายการกิจกรรมที่คุณติดตามอยู่</p>
         </div>
 
-        {/* Main content container */}
         <div style={styles.mainContent}>
-          {/* Left Side (Menu) */}
           <div style={styles.leftSide}>
-            <header style={styles.header}>
-              <nav style={styles.nav}>
-                <Link to="/hometeacher" style={styles.navItem}>หน้าหลัก</Link>                
-                <Link to="/profileteacher" style={styles.navItem}>โปรไฟล์</Link>           
-                <Link to="/searchactivityteacher" style={styles.navItem}>ค้นหากิจกรรม</Link> 
-                <Link to="/followactivityteacher" style={styles.navItem}>กิจกรรมที่ติดตาม</Link> 
-                <Link to="/addactivity" style={styles.navItem}>เพิ่มกิจกรรม</Link>
-                {/* เพิ่มลิงก์ที่ "ออกจากระบบ" เพื่อไปหน้า Login */}
-                <Link to="/" style={styles.navItem}>ออกจากระบบ</Link> </nav>
-            </header>
+            <nav style={styles.nav}>
+              <Link to="/hometeacher" className="nav-item">หน้าหลัก</Link>
+              <Link to="/profileteacher" className="nav-item">โปรไฟล์</Link>
+              <Link to="/searchactivityteacher" className="nav-item">ค้นหากิจกรรม</Link>
+              <Link to="/followactivityteacher" className="nav-item">กิจกรรมที่ติดตาม</Link>
+              <Link to="/addactivity" className="nav-item">เพิ่มกิจกรรม</Link>
+              <Link
+                to="/"
+                className="nav-item"
+                onClick={() => localStorage.removeItem('userEmail')}
+              >
+                ออกจากระบบ
+              </Link>
+            </nav>
           </div>
 
-          {/* Right Side (Main content) */}
           <div style={styles.rightSide}>
-            <section style={styles.mainSection}>
-              <h3 style={styles.sectionTitle}>รายการกิจกรรมที่ติดตาม (อาจารย์)</h3>
-
-              <div style={styles.activityList}>
-                <div style={styles.activityItem}>
-                  <h4>กิจกรรม A</h4>
-                  <p>วันที่: 5 สิงหาคม 2567</p>
-                  <p>สถานที่: อาคารเรียนรวม</p>
-                  <button style={styles.joinButton}>ดูรายละเอียด</button>
-                  <button style={styles.unfollowButton}>ยกเลิกติดตาม</button>
-                </div>
-
-                <div style={styles.activityItem}>
-                  <h4>กิจกรรม B</h4>
-                  <p>วันที่: 10 กันยายน 2567</p>
-                  <p>สถานที่: หอประชุมใหญ่</p>
-                  <button style={styles.joinButton}>ดูรายละเอียด</button>
-                  <button style={styles.unfollowButton}>ยกเลิกติดตาม</button>
-                </div>
-              </div>
-            </section>
+            <div style={styles.mainSection}>
+              {followedActivities.length === 0 ? (
+                <p>คุณยังไม่มีรายการกิจกรรมที่ติดตาม</p>
+              ) : (
+                followedActivities.map((act) => (
+                  <div key={act.activity_id} style={styles.activityItem}>
+                    <h4>{act.nameactivity}</h4>
+                    <p>วันที่: {act.date}</p>
+                    <p>เวลา: {act.start_time} - {act.end_time}</p>
+                    <p>สถานที่: {act.location}</p>
+                    <button onClick={() => navigate(`/activitydetailteacher/${act.activity_id}`)}>
+                      ดูรายละเอียด
+                    </button>
+                    <button onClick={() => handleUnfollow(act.activity_id)}>
+                      ยกเลิกติดตาม
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
-        {/* Bottom Box (Footer) */}
         <div style={styles.bottomBox}>
           <p>ติดต่อเรา: example@domain.com</p>
         </div>
@@ -85,98 +108,41 @@ const Followactivityteacher = () => {
 };
 
 const styles = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100vh',
-  },
+  container: { display: 'flex', flexDirection: 'column', height: '100vh' },
   topBox: {
     backgroundColor: '#003366',
     padding: '20px',
     textAlign: 'center',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    flex: '0 1 100px', // กำหนดความสูงของกล่องบนสุด
+    color: 'white',
   },
-  mainContent: {
-    display: 'flex',
-    flex: 1, // ใช้พื้นที่ที่เหลือ
-    backgroundColor: '#f9f9f9',
-  },
+  mainContent: { display: 'flex', flex: 1, backgroundColor: '#f9f9f9' },
   leftSide: {
     width: '250px',
-    backgroundColor: '#A1D8E6', // สีพื้นหลังของฝั่งซ้าย
+    backgroundColor: '#A1D8E6',
     padding: '20px',
     color: '#003366',
   },
-  header: {
-    marginBottom: '30px',
-  },
-  logo: {
-    fontSize: '24px',
-    fontWeight: 'bold',
-  },
-  nav: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px', // เพิ่มช่องว่างระหว่างเมนู
-  },
-  navItem: {
-    color: '#003366',
-    textDecoration: 'none',
-    fontSize: '16px',
-    padding: '10px',
-    lineHeight: '1.8',
-    borderRadius: '4px',
-    transition: 'background-color 0.3s', // เพิ่มการเปลี่ยนสีเมื่อ hover
-  },
-  navItemHover: {
-    backgroundColor: '#0077b6',
-  },
-  rightSide: {
-    flex: 1, // ฝั่งขวาจะยืดตามขนาดที่เหลือ
-    padding: '20px',
-  },
+  nav: { display: 'flex', flexDirection: 'column', gap: '20px' },
+  rightSide: { flex: 1, padding: '20px' },
   mainSection: {
     backgroundColor: 'white',
     padding: '20px',
     borderRadius: '8px',
     boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
   },
-  sectionTitle: {
-    fontSize: '24px',
-    marginBottom: '20px',
-    color: '#003366',
-  },
-  inputField: {
-    width: '100%',
-    padding: '10px',
-    fontSize: '16px',
-    marginBottom: '20px',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-  },
-  textArea: {
-    width: '100%',
-    padding: '10px',
-    fontSize: '16px',
-    height: '100px',
-    borderRadius: '4px',
-    border: '1px solid #ccc',
-    marginBottom: '20px',
-  },
-  imageBox: {
-    height: '150px',
-    backgroundColor: '#d0e6f7',
+  activityItem: {
+    backgroundColor: 'white',
+    padding: '15px',
+    marginBottom: '15px',
     borderRadius: '8px',
-    border: '2px solid #0077b6',
+    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
   },
   bottomBox: {
     backgroundColor: '#003366',
     color: 'white',
     padding: '20px',
     textAlign: 'center',
-    boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-    flex: '0 1 100px', // กำหนดความสูงของกล่องล่างสุด
   },
 };
+
 export default Followactivityteacher;
